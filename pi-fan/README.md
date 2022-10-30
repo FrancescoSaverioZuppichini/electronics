@@ -1,6 +1,6 @@
 # PI - FAN
 
-![alt](./images/header.png)
+![alt](../images/header.png)
 
 PWD controller fan, turning on only when a certain temperature is reached.
 
@@ -17,7 +17,7 @@ You can always check your pi pinouts by going [here](https://pinout.xyz/)
 
 The schematic below shows the circuit.
 
-![alt](./images/schematics.png)
+![alt](../images/schematics.png)
 *made with https://www.circuitlab.com/*
 **R2 should be 1k ohm**
 
@@ -25,15 +25,15 @@ The schematic below shows the circuit.
 
 I've used a perfboard to create the circuit. Here the results
 
-![alt](/images/0.jpeg)
+![alt](./images/0.jpeg)
 
 The final result is very small!
 
-![alt](/images/1.jpeg)
+![alt](./images/1.jpeg)
 
 A little test to ensure everything is working :) 
 
-![alt](/images/test.mp4)
+![alt](./images/test.mp4)
 
 ## Software
 
@@ -117,4 +117,4 @@ Then you can find it inside
 cd code && ./target/release/fan-pwm-controller
 ```
 
-![alt](/images/rust.png)
+![alt](./images/rust.png)
