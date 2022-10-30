@@ -49,7 +49,7 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
 ### Code
 
-Code can be found inside `./code`. 
+Code can be found inside `./code`, the cargo project is called `fan-pwm-controller`.
 
 The whole code is very small, variables can be changed on top. Fan will be trigger when the temperature is `>` than `60C`.
 
@@ -61,7 +61,7 @@ use std::{fs, num::ParseIntError, fmt::Error};
 
 const TEMP_FILE_PATH: &str = "/sys/class/thermal/thermal_zone0/temp";
 const TRIGGER_TEMP_IN_CELSIUS: i32 = 60;
-const TIME_WAIT_IN_MILLISECONDS: u64 = 5 * 1000;
+const TIME_WAIT_IN_MILLISECONDS: u64 = 2 * 1000;
 const GPIO: u64 = 17;
 
 fn get_temperature(file_path: &str) -> Result<i32, &str> {
@@ -114,7 +114,21 @@ cd code && cargo build --release
 Then you can find it inside
 
 ```
-cd code && ./target/release/fan-pwm-controller
+sudo chmod +x ./code/target/release/fan-pwm-controller
+./code/target/release/fan-pwm-controller
 ```
 
 ![alt](./images/rust.png)
+
+Then, to run it at startup
+
+```
+sudo nano /etc/rc.local
+
+```
+
+and add the command to run the code before `exit 0`. In my case
+
+```
+sudo /home/<USER_NAME>/fan-pwm-controller/target/release/fan-pwm-controller
+```
