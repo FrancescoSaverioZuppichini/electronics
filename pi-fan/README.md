@@ -2,7 +2,7 @@
 
 ![alt](./images/header.png)
 
-PWD controller fan, turning on only when a certain temperature is reached.
+GPIO controller fan, turning on only when a certain temperature is reached.
 
 You can always check your pi pinouts by going [here](https://pinout.xyz/)
 
