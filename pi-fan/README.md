@@ -51,7 +51,7 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
 Code can be found inside `./code`, the cargo project is called `fan-pwm-controller`.
 
-The whole code is very small, variables can be changed on top. Fan will be trigger when the temperature is `>` than `60C`.
+The whole code is short, variables can be changed on top. The fan will be triggered when the temperature is `> 60C`.
 
 ```rust
 use sysfs_gpio::{Direction, Pin};
@@ -132,3 +132,7 @@ and add the command to run the code before `exit 0`. In my case
 ```
 sudo /home/<USER_NAME>/fan-pwm-controller/target/release/fan-pwm-controller
 ```
+
+
+
+Et voila! The script will start at startup time 🥳 
