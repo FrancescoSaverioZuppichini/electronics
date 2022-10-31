@@ -49,7 +49,7 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
 ### Code
 
-Code can be found inside `./code`, the cargo project is called `fan-pwm-controller`.
+Code can be found inside `./code`, the cargo project is called `fan-controller`.
 
 The whole code is short, variables can be changed on top. The fan will be triggered when the temperature is `> 60C`.
 
@@ -114,8 +114,8 @@ cd code && cargo build --release
 Then you can find it inside
 
 ```
-sudo chmod +x ./code/target/release/fan-pwm-controller
-./code/target/release/fan-pwm-controller
+sudo chmod +x ./code/target/release/fan-controller
+./code/target/release/fan-controller
 ```
 
 ![alt](./images/rust.png)
@@ -130,7 +130,7 @@ sudo nano /etc/rc.local
 and add the command to run the code before `exit 0`. In my case
 
 ```
-sudo /home/<USER_NAME>/fan-pwm-controller/target/release/fan-pwm-controller
+sudo /home/<USER_NAME>/fan-controller/target/release/fan-controller
 ```
 
 
