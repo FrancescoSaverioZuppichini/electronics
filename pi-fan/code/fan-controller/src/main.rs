@@ -80,7 +80,7 @@ fn main() {
                     }
                 } else {
                     if let Err(e) = set_pin_value(&my_pin, PinValue::Off) {
-                        println!("Error while setting pin to {}: {}", PinValue::Off, e)
+                        println!("Error while setting pin to {}: {}", PinValue::On, e)
                     } else {
                         println!("[OFF] Fan");
                     }
