@@ -1,49 +1,93 @@
-use sysfs_gpio::{Direction, Pin};
+use lazy_static::lazy_static;
+use std::fmt::Display;
+use std::fs;
 use std::thread::sleep;
 use std::time::Duration;
-use std::{fs, num::ParseIntError, fmt::Error};
+use sysfs_gpio::{Direction, Pin};
+use thiserror::Error;
 
-const TEMP_FILE_PATH: &str = "/sys/class/thermal/thermal_zone0/temp";
-const TRIGGER_TEMP_IN_CELSIUS: i32 = 60;
-const TIME_WAIT_IN_MILLISECONDS: u64 = 5 * 1000;
-const GPIO: u64 = 17;
+lazy_static! {
+    static ref TEMP_FILE_PATH: String = "/sys/class/thermal/thermal_zone0/temp".to_string();
+    static ref TRIGGER_TEMP_IN_CELSIUS: u64 = 60;
+    static ref TIME_WAIT_IN_MILLISECONDS: u64 = 5 * 1000;
+    static ref GPIO: u64 = 17;
+}
 
-fn get_temperature(file_path: &str) -> Result<i32, &str> {
-    let temp = match fs::read_to_string(file_path) {
-         Ok(line) =>  match line.trim().parse::<i32>() {
-             Ok(temp) => Ok(temp/ 1000),
-             ParseIntError => Err("Cannot parse int.")
-         },
-         Err(error) => Err("Cannot open file.")
-     };
- 
-     return temp;
- }
- 
+#[derive(Error, Debug)]
+pub enum MyError {
+    #[error("Can't read temperature from file: {0}")]
+    IO(String),
+    #[error("Can't convert to interger: {0}")]
+    Conversion(String),
+    #[error("Can't set pin value: {0}")]
+    GPIO(String),
+}
+
+type Result<T> = std::result::Result<T, MyError>;
+
+enum PinValue {
+    On,
+    Off,
+}
+
+impl From<PinValue> for u8 {
+    fn from(pin: PinValue) -> Self {
+        match pin {
+            PinValue::On => 0_u8,
+            PinValue::Off => 1_u8,
+        }
+    }
+}
+
+impl Display for PinValue {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            PinValue::On => write!(f, "0"),
+            PinValue::Off => write!(f, "1"),
+        }
+    }
+}
+
+fn get_temperature(file_path: &str) -> Result<u64> {
+    let line = fs::read_to_string(file_path);
+    match line {
+        Ok(line) => line
+            .trim()
+            .parse::<u64>()
+            .map_err(|e| MyError::Conversion(e.to_string())),
+        Err(e) => Err(MyError::IO(e.to_string())),
+    }
+}
+
+fn set_pin_value(pin: &Pin, value: PinValue) -> Result<()> {
+    pin.set_direction(Direction::Out).unwrap();
+    pin.with_exported(|| pin.set_value(value.into()))
+        .map_err(|e| MyError::GPIO(e.to_string()))
+}
 
 fn main() {
-    let my_pin = Pin::new(GPIO);
-    my_pin.with_exported(|| {
-        my_pin.set_direction(Direction::Out).unwrap();
-        loop {
-            match get_temperature(TEMP_FILE_PATH) {
-                Ok(temp) => {
-                    if temp < TRIGGER_TEMP_IN_CELSIUS { 
-                        println!("{}", "[ON] Fan");
-                        my_pin.set_value(0).unwrap();
-    
+    let my_pin = Pin::new(*GPIO);
+
+    loop {
+        match get_temperature(&*TEMP_FILE_PATH) {
+            Ok(temp) => {
+                println!("Temperature is = {}C", temp);
+                if temp < *TRIGGER_TEMP_IN_CELSIUS {
+                    if let Err(e) = set_pin_value(&my_pin, PinValue::On) {
+                        println!("Error while setting pin to {}: {}", PinValue::Off, e)
+                    } else {
+                        println!("[ON] Fan");
                     }
-                    else {
-                        println!("{}", "[OFF] Fan");
-                        my_pin.set_value(1).unwrap();
-                
+                } else {
+                    if let Err(e) = set_pin_value(&my_pin, PinValue::Off) {
+                        println!("Error while setting pin to {}: {}", PinValue::Off, e)
+                    } else {
+                        println!("[OFF] Fan");
                     }
-                    println!("Temperature is = {}C", temp);
-                    sleep(Duration::from_millis(TIME_WAIT_IN_MILLISECONDS));
-                },
-                Err(error) => println!("{}", error)
-            };
+                }
+            }
+            Err(e) => println!("Error while reading temp: {}", e),
         }
-     
-    }).unwrap();
+        sleep(Duration::from_millis(*TIME_WAIT_IN_MILLISECONDS));
+    }
 }
